@@ -1,11 +1,27 @@
+from django.contrib import admin
 from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from . import views
+from django.conf import settings
+from django.conf.urls.static import static
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
 
-router = DefaultRouter()
-router.register(r'companies', views.CompanyViewSet)
-router.register(r'ipos', views.IPODataViewSet)
+schema_view = get_schema_view(
+    openapi.Info(
+        title="IPO API",
+        default_version='v1',
+        description="API documentation for IPO Web Application",
+        terms_of_service="https://www.bluestock.com/terms/",
+        contact=openapi.Contact(email="contact@bluestock.com"),
+        license=openapi.License(name="BSD License"),
+    ),
+    public=True,
+    permission_classes=(permissions.AllowAny,),
+)
 
 urlpatterns = [
-    path('', include(router.urls)),
-]
+    path('admin/', admin.site.urls),
+    path('api/', include('ipo_api.urls')),
+    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
