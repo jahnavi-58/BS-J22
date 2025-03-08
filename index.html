@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}Bluestock IPO Portal - Home{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Welcome to Bluestock IPO Portal</h1>
+        
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Current IPOs</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Company</th>
+                                <th>Price Band</th>
+                                <th>Issue Size</th>
+                                <th>Open Date</th>
+                                <th>Close Date</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ipoTableBody">
+                            <!-- Data will be populated via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    fetchIPOs();
+});
+
+async function fetchIPOs() {
+    try {
+        const response = await fetch('/api/ipos/');
+        const data = await response.json();
+        
+        const tableBody = document.getElementById('ipoTableBody');
+        tableBody.innerHTML = '';
+        
+        data.results.forEach(ipo => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>
+                    <img src="${ipo.company_logo}" alt="${ipo.company_name}" class="me-2" style="width: 30px; height: 30px;">
+                    ${ipo.company_name}
+                </td>
+                <td>₹${ipo.price_band_low} - ₹${ipo.price_band_high}</td>
+                <td>₹${ipo.issue_size} Cr</td>
+                <td>${new Date(ipo.open_date).toLocaleDateString()}</td>
+                <td>${new Date(ipo.close_date).toLocaleDateString()}</td>
+                <td><span class="badge bg-${getStatusColor(ipo.status)}">${ipo.status}</span></td>
+                <td>
+                    <a href="/ipo/${ipo.id}" class="btn btn-sm btn-primary">View Details</a>
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+    } catch (error) {
+        console.error('Error fetching IPOs:', error);
+    }
+}
+
+function getStatusColor(status) {
+    switch (status) {
+        case 'upcoming': return 'info';
+        case 'open': return 'success';
+        case 'closed': return 'warning';
+        case 'listed': return 'secondary';
+        default: return 'primary';
+    }
+}
+</script>
+{% endblock %}
